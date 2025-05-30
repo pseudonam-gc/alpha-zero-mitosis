@@ -78,6 +78,8 @@ class MCTS():
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
         if self.Es[s] != 0:
             # terminal node
+            # print board
+            #self.game.display(canonicalBoard)
             return -self.Es[s]
 
         if s not in self.Ps:

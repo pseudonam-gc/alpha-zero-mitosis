@@ -5,6 +5,9 @@
 /.project
 /.pydevproject
 
+# pyenv
+alpha_zero_env/
+
 # checkpoint
 checkpoints/
 

@@ -8,6 +8,7 @@ from random import shuffle
 import numpy as np
 from tqdm import tqdm
 
+from pseudo_ttt.TTTPlayers import RandomPlayer
 from Arena import Arena
 from MCTS import MCTS
 
@@ -117,7 +118,6 @@ class Coach():
             arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
                           lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game)
             pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
-
             log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
             if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.updateThreshold:
                 log.info('REJECTING NEW MODEL')
@@ -126,6 +126,12 @@ class Coach():
                 log.info('ACCEPTING NEW MODEL')
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
+
+            log.info('PITTING AGAINST RANDOM PLAYER')
+            arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
+                RandomPlayer(self.game), self.game)
+            pwins, rwins, draws = arena.playGames(self.args.arenaCompare)
+            log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (pwins, rwins, draws))
 
     def getCheckpointFile(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'

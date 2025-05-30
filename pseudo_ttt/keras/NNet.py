@@ -10,28 +10,22 @@ sys.path.append('../..')
 from utils import *
 from NeuralNet import NeuralNet
 
-import logging
-import coloredlogs
-log = logging.getLogger(__name__)
-
 import argparse
 
-from .Connect4NNet import Connect4NNet as onnet
+from .TTTNNet import TTTNNet as onnet
 
 args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
     'epochs': 10,
     'batch_size': 64,
-    'cuda': True,
-    'num_channels': 128,
-    'num_residual_layers': 20
+    'cuda': False,
+    'num_channels': 512,
 })
 
 class NNetWrapper(NeuralNet):
     def __init__(self, game):
         self.nnet = onnet(game, args)
-        self.nnet.model.summary()
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
 
@@ -76,10 +70,10 @@ class NNetWrapper(NeuralNet):
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         # change extension
         filename = filename.split(".")[0] + ".h5"
-        
+
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
         filepath = os.path.join(folder, filename)
-        #if not os.path.exists(filepath):
-            #raise("No model in path {}".format(filepath))
+        if not os.path.exists(filepath):
+            raise("No model in path {}".format(filepath))
+
         self.nnet.model.load_weights(filepath)
-        log.info('Loading Weights...')
