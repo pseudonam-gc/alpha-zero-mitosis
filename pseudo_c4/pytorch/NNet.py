@@ -12,15 +12,15 @@ from NeuralNet import NeuralNet
 import torch
 import torch.optim as optim
 
-from .TTTNNet import TTTNNet as onnet
+from .C4NNet import C4NNet as onnet
 
 args = dotdict({
-    'lr': 0.0005,
+    'lr': 0.001,
     'dropout': 0.3,
     'epochs': 1,
     'batch_size': 64,
     'cuda': torch.cuda.is_available(),
-    'num_channels': 128,
+    'num_channels': 64,
 })
 
 

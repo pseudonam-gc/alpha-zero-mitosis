@@ -42,4 +42,4 @@ All hyperparameters worth tuning are in:
     - updateThreshold determines what percentage W/(W+L) (draws ignored) has to be to switch models.
 * pseudo_ttt/pytorch/TTTNNet.py is contains the model and some of its parameters. 
     - Beware about size and padding, especially on small boards.
-    
+* pseudo_ttt/pytorch/NNet.py contains training stuff (epochs, etc)

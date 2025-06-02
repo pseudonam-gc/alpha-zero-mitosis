@@ -116,8 +116,10 @@ class Coach():
 
             log.info('PITTING AGAINST PREVIOUS VERSION')
             arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
-                          lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game)
-            pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
+                          lambda x: np.argmax(nmcts.getActionProb(x, temp=0)),
+                          self.game,
+                          display=self.game.display)
+            pwins, nwins, draws = arena.playGames(self.args.arenaCompare, True)
             log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
             if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.updateThreshold:
                 log.info('REJECTING NEW MODEL')
@@ -129,7 +131,9 @@ class Coach():
 
             log.info('PITTING AGAINST RANDOM PLAYER')
             arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
-                RandomPlayer(self.game), self.game)
+                RandomPlayer(self.game), 
+                self.game,
+                display=self.game.display)
             pwins, rwins, draws = arena.playGames(self.args.arenaCompare)
             log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (pwins, rwins, draws))
 
