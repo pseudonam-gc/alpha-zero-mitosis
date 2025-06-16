@@ -8,7 +8,9 @@ from random import shuffle
 import numpy as np
 from tqdm import tqdm
 
-from pseudo_ttt.TTTPlayers import RandomPlayer
+#from pseudo_c4.C4Players import GreedyV2C4Player
+from pseudo_mitosis.MitosisPlayers import GreedyMitosisPlayer
+from pseudo_mitosis.MitosisPlayers import RandomPlayer
 from Arena import Arena
 from MCTS import MCTS
 
@@ -119,7 +121,7 @@ class Coach():
                           lambda x: np.argmax(nmcts.getActionProb(x, temp=0)),
                           self.game,
                           display=self.game.display)
-            pwins, nwins, draws = arena.playGames(self.args.arenaCompare, True)
+            pwins, nwins, draws = arena.playGames(self.args.arenaCompare, False)
             log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
             if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.updateThreshold:
                 log.info('REJECTING NEW MODEL')
@@ -128,7 +130,8 @@ class Coach():
                 log.info('ACCEPTING NEW MODEL')
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
-
+            log.info('EXAMPLE GAMES')
+            pwins, nwins, draws = arena.playGames(2, True)
             log.info('PITTING AGAINST RANDOM PLAYER')
             arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
                 RandomPlayer(self.game), 
