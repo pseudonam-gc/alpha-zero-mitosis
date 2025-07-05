@@ -131,13 +131,22 @@ class Coach():
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
             log.info('EXAMPLE GAMES')
+            # display example games
             pwins, nwins, draws = arena.playGames(2, True)
             log.info('PITTING AGAINST RANDOM PLAYER')
             arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
                 RandomPlayer(self.game), 
                 self.game,
                 display=self.game.display)
-            pwins, rwins, draws = arena.playGames(self.args.arenaCompare)
+            pwins, rwins, draws = arena.playGames(self.args.arenaCompare//2)
+            log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (pwins, rwins, draws))
+            
+            log.info('PITTING AGAINST GREEDY PLAYER')
+            arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
+                GreedyMitosisPlayer(self.game), 
+                self.game,
+                display=self.game.display)
+            pwins, rwins, draws = arena.playGames(self.args.arenaCompare//2)
             log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (pwins, rwins, draws))
 
     def getCheckpointFile(self, iteration):

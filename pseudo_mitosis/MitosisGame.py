@@ -53,7 +53,6 @@ class MitosisGame(Game):
         # make [2, num_messages] integer tensor 
         return torch.tensor([src, dst], dtype=torch.long)
                 
-
     def getNextState(self, board, player, action):
         b = Board(self.n)
         b.pieces = np.copy(board)

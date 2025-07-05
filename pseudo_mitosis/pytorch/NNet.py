@@ -12,15 +12,15 @@ from NeuralNet import NeuralNet
 import torch
 import torch.optim as optim
 
-from .MitosisNNet import MitosisNNet as onnet
+from .MitosisCNet import MitosisCNet as onnet
 
 args = dotdict({
-    'lr': 0.001,
+    'lr': 0.0001,
     'dropout': 0.3,
-    'epochs': 1,
+    'epochs': 2,
     'batch_size': 64,
     'cuda': torch.cuda.is_available(),
-    'num_channels': 64,
+    'num_channels': 512,
 })
 
 

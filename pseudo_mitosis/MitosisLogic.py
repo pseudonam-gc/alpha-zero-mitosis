@@ -121,8 +121,30 @@ class Board():
     
     def get_game_ended(self, color):
         """If a player has no legal moves ON THEIR TURN, they lose."""
+                
         if not self.has_legal_moves(color):
             return -color
+        return 0
+    
+        # other variant
+        #if not self.has_legal_moves(color):
+            #return 0.01
+        # otherwise return the player controlling most of the board corners
+        # that is, (0,0), (0,2), (2,4), (4,4), (4,2), (2,0)
+        corners = [(0, 0), (0, 3), (3, 6), (6, 6), (6, 3), (3, 0)]
+        p1_corners = 0
+        p2_corners = 0
+        for corner in corners:
+            index = self.indices[corner[0]][corner[1]]
+            if self.pieces[index] == 1:
+                p1_corners += 1
+            elif self.pieces[index] == -1:
+                p2_corners += 1
+        if p1_corners >= 3:
+            return 1
+        elif p2_corners >= 3:
+            return -1
+
         return 0
     
     def execute_move(self, move, color):
