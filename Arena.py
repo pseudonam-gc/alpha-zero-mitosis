@@ -52,8 +52,14 @@ class Arena():
                 assert self.display
                 print("Turn ", str(it), "Player ", str(curPlayer))
                 self.display(board)
-            action = players[curPlayer + 1](self.game.getCanonicalForm(board, curPlayer))
+            # TODO: the issue is that canonicalform is the rect board (4x9=36-size). this gets passed to players
+            # players expects a 19-size hex board though, and so they call getValidMoves on the rect board
+            # which returns a 36-size vector, but the players expect a 19-size vector
 
+            # TODO: mcts has the same issue, using canonicalBoard for getValidMoves()
+            # also uses it for getgameended() among other things
+            # bruh ok i should probably just git revert
+            action = players[curPlayer + 1](self.game.getCanonicalForm(board, curPlayer))
             valids = self.game.getValidMoves(self.game.getCanonicalForm(board, curPlayer), 1)
 
             if valids[action] == 0:

@@ -1,5 +1,7 @@
 from collections import defaultdict
 from termcolor import colored
+import random
+import numpy as np
 '''
 Author: Josiah K
 Board class.
@@ -20,7 +22,7 @@ class Board():
         # = 1+(6*(n)(n-1)/2) = 1+3*n*(n-1)
         # Create the empty board array.
         self.space_count = (1+3*n*(n-1))
-        self.pieces = [0] * self.space_count
+        self.hex_pieces = [0] * self.space_count
 
         """
                 (0,0) (0,1) (0,2) (0,3) (0,4)
@@ -44,6 +46,8 @@ class Board():
                 self.cells.append((i, j))
                 self.indices[i][j] = len(self.cells)-1
 
+        self.pieces = self.make_rectangular(self.hex_pieces)
+
         # adjacent tiles
         self.adj = [(0, 1), (1, 0), (1, 1)]
 
@@ -56,19 +60,28 @@ class Board():
             p2_cells = [(2*n-3, 2*n-3)]
         for cell in p1_cells:
             index = self.indices[cell[0]][cell[1]]
-            self.pieces[index] = 1
+            self.hex_pieces[index] = 1
         for cell in p2_cells:
             index = self.indices[cell[0]][cell[1]]
-            self.pieces[index] = -1
+            self.hex_pieces[index] = -1
 
     def reset(self):
         """Reset the board to the initial state."""
-        self.pieces = [None]*self.space_count
-        self.pieces = [0] * self.space_count
+        self.hex_pieces = [None]*self.space_count
+        self.hex_pieces = [0] * self.space_count
+        self.pieces = self.make_rectangular(self.hex_pieces)
+
+    def set_pieces(self, pieces):
+        """Set the pieces on the board."""
+        #assert len(pieces) == self.space_count, \
+            #"Pieces must be of length {}".format(self.space_count)
+        self.hex_pieces = pieces
+        self.pieces = self.make_rectangular(self.hex_pieces)
 
     # add [][] indexer syntax to the Board
     def __getitem__(self, index): 
-        return self.pieces[index]
+        # TODO: make self.pieces
+        return self.hex_pieces[index]
 
     def _action_cells(self, space, dir):
         """Find the two cells corresponding to the given move.
@@ -90,7 +103,9 @@ class Board():
     def is_move_legal(self, space, dir, color):
         """Check if the move is legal."""
         # Check if the starting cell is the same color as the player
-        if self[space] != color:
+        #print (space, self.hex_pieces[space], color)
+        #print (space, dir, colored)
+        if self.hex_pieces[space] != color:
             return False
         # Check if the move creates new tiles on only valid spaces
         forward, back = self._action_cells(space, dir)
@@ -99,7 +114,7 @@ class Board():
         forward = self.indices[forward[0]][forward[1]]
         back = self.indices[back[0]][back[1]]
         # Check if both tiles are empty
-        if self[forward] != 0 or self[back] != 0:
+        if self.hex_pieces[forward] != 0 or self.hex_pieces[back] != 0:
             return False
         return True
 
@@ -136,9 +151,9 @@ class Board():
         p2_corners = 0
         for corner in corners:
             index = self.indices[corner[0]][corner[1]]
-            if self.pieces[index] == 1:
+            if self.hex_pieces[index] == 1:
                 p1_corners += 1
-            elif self.pieces[index] == -1:
+            elif self.hex_pieces[index] == -1:
                 p2_corners += 1
         if p1_corners >= 3:
             return 1
@@ -151,17 +166,37 @@ class Board():
         """Perform the given move on the board; flips pieces as necessary.
         color gives the color of the piece to play (1=white,-1=black)
         """
-        assert self.is_move_legal(move // 3, move % 3, color), \
-            "Illegal move: {} for color {}".format(move, color)
+        try:
+            assert self.is_move_legal(move // 3, move % 3, color), \
+                "Illegal move: {} for color {}".format(move, color)
+        except:
+            # display board
+            print("Illegal move: {} for color {}".format(move, color))
+            self.display_indices()
         forward, back = self._action_cells(move // 3, move % 3)
         forward = self.indices[forward[0]][forward[1]]
         back = self.indices[back[0]][back[1]]
+        self.hex_pieces[forward] = color
+        self.hex_pieces[back] = color
+        self.hex_pieces[move//3] = 0
+        self.pieces = self.make_rectangular(self.hex_pieces)
+        # display rect board
+        
+    def make_rectangular(self, hex_pieces=None):
+        if hex_pieces is None:
+            hex_pieces = self.hex_pieces
+        grid_x = (4*self.n-3)
+        grid_y = (2*self.n-1)
+        new_board = [0] * (grid_x * grid_y)
+        # loop through the piece coordinates
+        for (x, y) in self.cells:
+            value = hex_pieces[self.indices[x][y]]
+            new_board[x*grid_x + 2*y + (self.n-1-x)] = value
+        return np.array(new_board)
 
-        self.pieces[forward] = color
-        self.pieces[back] = color
-        self.pieces[move//3] = 0
-
-    def display(self):
+    def display(self, hex_pieces=None):
+        if hex_pieces is None:
+            hex_pieces = self.hex_pieces
         # display the hex grid
         ind = 0
         piece_symbols = {0: ".", 1: colored("O", "red"), -1: colored("X", "blue")}
@@ -170,7 +205,7 @@ class Board():
             upper_bound = min(self.n-1, i)+self.n-1
             row = ""
             for j in range(lower_bound, upper_bound+1): 
-                row += piece_symbols[self.pieces[ind]] + " "
+                row += piece_symbols[hex_pieces[ind]] + " "
                 ind += 1
             # add space to left of row
             print(" " * (abs(self.n-1-i)) + row)
@@ -191,3 +226,24 @@ class Board():
             # add space to left of row
             print("  " * (abs(self.n-1-i)) + row)
     
+    def display_rectangular(self, hex_pieces=None):
+        # display the rectangular board
+        b = self.make_rectangular(hex_pieces)
+        x = (4*self.n-3)
+        y = (2*self.n-1)
+        ind = 0
+        piece_symbols = {0: ".", 1: colored("O", "red"), -1: colored("X", "blue")}
+        for i in range(0, y):
+            row = ""
+            for j in range(0, x):
+                row += piece_symbols[b[ind]] + " "
+                ind += 1
+            print(row)  
+
+    def random_fill(self):
+        """Randomly fill the board with pieces."""
+        for i in range(self.space_count):
+            if random.random() < 0.5:
+                self.hex_pieces[i] = 1
+            else:
+                self.hex_pieces[i] = -1

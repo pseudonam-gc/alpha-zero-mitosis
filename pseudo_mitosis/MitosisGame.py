@@ -24,10 +24,11 @@ class MitosisGame(Game):
     def getInitBoard(self):
         # return initial board (numpy board)
         b = Board(self.n)
-        return np.array(b.pieces)
+        return b.hex_pieces
     
     def getBoardSize(self):
-        return (1 + 3 * self.n * (self.n - 1))
+        return (4*self.n-3, 2*self.n-1)
+        #return (1 + 3 * self.n * (self.n - 1))
 
     def getActionSize(self):
         # return number of actions
@@ -55,15 +56,15 @@ class MitosisGame(Game):
                 
     def getNextState(self, board, player, action):
         b = Board(self.n)
-        b.pieces = np.copy(board)
+        b.set_pieces(board)
         b.execute_move(action, player)
-        return (b.pieces, -player)
+        return (b.hex_pieces, -player)
 
     def getValidMoves(self, board, player):
         # return a fixed size binary vector
         valids = [0]*self.getActionSize()
         b = Board(self.n)
-        b.pieces = np.copy(board)
+        b.set_pieces(board)
         legalMoves = b.get_legal_moves(player)
         for move in legalMoves:
             valids[move] = 1
@@ -71,21 +72,26 @@ class MitosisGame(Game):
 
     def getGameEnded(self, board, player):
         b = Board(self.n)
-        b.pieces = np.copy(board)
+        b.set_pieces(board)
         return b.get_game_ended(player)
 
     def getCanonicalForm(self, board, player):
         # return state if player==1, else return -state if player==-1
         #print (self.getSymmetries(board, [1]*self.getActionSize()))
+        #b = Board(self.n)
+        #b.set_pieces(board)
         b = Board(self.n)
-        b.pieces = np.copy(board)
-        return player*board
+        # display bord
+        b.set_pieces(board)
+        b.display_rectangular()
+        return player*b.make_rectangular(board)
+        #return player * board
 
     def rotate60(self, board, pi):
         """Rotate the board 60 degrees clockwise."""
         # Create copy of board and policy vector to rotate
         b = Board(self.n)
-        b.pieces = np.copy(board)
+        b.set_pieces(board)
         new_board = np.copy(board)
         new_pi = np.copy(pi)
 
@@ -115,7 +121,7 @@ class MitosisGame(Game):
     def reflectHorizontally(self, board, pi):
         """Reflect the board horizontally."""
         b = Board(self.n)
-        b.pieces = np.copy(board)
+        b.set_pieces(board)
         new_board = np.copy(board)
         new_pi = np.copy(pi)
         # Loop through rows
@@ -135,17 +141,18 @@ class MitosisGame(Game):
 
     def getSymmetries(self, board, pi):
         l = []
-            
+        b = Board(self.n)
         # The board is isomorphic to D6 - 12 symmetries (2 reflections for 6 rotations)
         curr_board = np.copy(board)
         curr_pi = np.copy(pi)
         for i in range(6):
             curr_board, curr_pi = self.rotate60(curr_board, curr_pi)
-            l += [(curr_board, curr_pi)]
+            l += [(b.make_rectangular(curr_board), curr_pi)]
             # add the reflection
             new_board, new_pi = self.reflectHorizontally(curr_board, curr_pi)
-            l += [(new_board, new_pi)]
-        
+            l += [(b.make_rectangular(new_board), new_pi)]
+            print ("!!!!!!!!!")
+            print (b.display(curr_board))
         return l
 
     def stringRepresentation(self, board):
@@ -159,12 +166,16 @@ class MitosisGame(Game):
     def display(board):
         # figure out the size of the board
         n = 1
-        while n * (n - 1) * 3 + 1 < board.size:
+        while n * (n - 1) * 3 + 1 < len(board):
             n += 1
-        if n * (n - 1) * 3 + 1 != board.size:
+        if n * (n - 1) * 3 + 1 != len(board):
             raise ValueError("Invalid board size")
         print("-----------------------")
         b = Board(n)
-        b.pieces = np.copy(board)
+        b.set_pieces(board)
         b.display()
         print("-----------------------")
+
+        #b = Board(3)
+        #b.set_pieces(board)
+        #b.display_rectangular()
