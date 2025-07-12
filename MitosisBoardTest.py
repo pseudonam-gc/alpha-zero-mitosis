@@ -79,12 +79,13 @@ import torch
 from utils import dotdict
 
 nnet = nn(g)
-example_count = 1e6
+example_count = 1e5
 examples = []
 while len(examples) < example_count:
     res = generate_random_board(3)
     if res is not None:
         examples.append(res)
+print ("Boards created.")
 print ("Examples size:", len(examples))
 train_frac = 0.8
 train_examples = examples[:int(len(examples) * train_frac)]  # Use 80% for training

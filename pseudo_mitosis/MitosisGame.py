@@ -34,24 +34,44 @@ class MitosisGame(Game):
         return 3 * (1 + 3 * self.n * (self.n - 1))
 
     def getEdgeIndex(self):
-        # return all edge indices as a torch tensor
+        return self._getEdgeIndexAndAttr()[0]
+    
+    def getEdgeAttr(self):
+        return self._getEdgeIndexAndAttr()[1]
+    
+    def _getEdgeIndexAndAttr(self):
+        """
+        Returns:
+        - edge_index: [2, num_edges]
+        - edge_attr: [num_edges, 6] one-hot direction encoding
+        """
         src = []
         dst = []
+        edge_attr = []
+
         dirs = [(0, 1), (1, 1), (1, 0), (0, -1), (-1, -1), (-1, 0)]
         b = Board(self.n)
         cell_set = set(b.cells)
-        # loop through ALL indices in board
-        for (x,y) in b.cells:
-            for (dx, dy) in dirs:
-                # get the adjacent cell
-                adj_x = x + dx
-                adj_y = y + dy
+
+        for (x, y) in b.cells:
+            for dind, (dx, dy) in enumerate(dirs):
+                adj_x, adj_y = x + dx, y + dy
                 if (adj_x, adj_y) in cell_set:
-                    src.append(b.indices[x][y])
-                    dst.append(b.indices[adj_x][adj_y])
-        # return (np.array(src, dtype=np.int64), np.array(dst, dtype=np.int64))
-        # make [2, num_messages] integer tensor 
-        return torch.tensor([src, dst], dtype=torch.long)
+                    src_idx = b.indices[x][y]
+                    dst_idx = b.indices[adj_x][adj_y]
+                    src.append(src_idx)
+                    dst.append(dst_idx)
+
+                    dir_onehot = [0] * 6
+                    dir_onehot[dind] = 1
+                    edge_attr.append(dir_onehot)
+
+        edge_index = torch.tensor([src, dst], dtype=torch.long)
+        edge_attr = torch.tensor(edge_attr, dtype=torch.float)  # or torch.long if needed
+
+        return edge_index, edge_attr
+
+        
                 
     def getNextState(self, board, player, action):
         b = Board(self.n)
